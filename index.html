@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CanVas Dev | Portfolio</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <style>
+    :root {
+        --console-green: #00ff00;
+        --dark-bg: #0b0f0b;
+        --light-text: #e0e0e0;
+        --neon-shadow: 0 0 4px var(--console-green), 0 0 10px rgba(0, 255, 0, 0.7);
+    }
+    
+    html { scroll-behavior: smooth; }
+    
+    body {
+      margin: 0;
+      font-family: 'Consolas', 'Courier New', monospace; 
+      color: var(--console-green); 
+      overflow-x: hidden;
+      background-color: var(--dark-bg);
+      line-height: 1.6;
+      font-size: 16px;
+      opacity: 1; 
+    }
+
+    body.no-scroll {
+        overflow: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 2px);
+    }
+    
+    .neon-text {
+        color: var(--console-green) !important;
+        text-shadow: var(--neon-shadow);
+    }
+    
+    h1, h2, h3 { text-shadow: var(--neon-shadow); }
+
+    #preloader {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000;
+        z-index: 99999; display: flex; flex-direction: column; justify-content: center;
+        align-items: center; color: var(--console-green); font-family: monospace;
+        opacity: 1;
+        transition: opacity 0.5s;
+    }
+    #preloader.hidden {
+        opacity: 0 !important;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.5s; 
+    }
+    .loading-bar { width: 300px; height: 10px; border: 1px solid var(--console-green); background: rgba(0, 255, 0, 0.1); overflow: hidden; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+    .loading-progress { height: 100%; width: 0%; background-color: var(--console-green); transition: width 3s ease-in-out; }
+
+    #audio-prompt {
+        display: none !important;
+    }
+
+    section {
+      padding: 80px 50px; max-width: 1000px; margin: auto;
+      border-left: 1px dashed rgba(0, 255, 0, 0.3); padding-left: 60px; margin-top: 20px;
+    }
+    header {
+      background: rgba(0, 0, 0, 0.95); padding: 20px 50px; display: flex; justify-content: space-between;
+      align-items: center; position: sticky; top: 0; z-index: 1000;
+      border-bottom: 2px solid var(--console-green); box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+    }
+    nav a { color: var(--light-text); text-decoration: none; margin-left: 25px; transition: 0.3s; }
+    nav a:hover { color: var(--console-green); text-shadow: 0 0 5px var(--console-green); }
+    .blinking-caret { animation: typed-blink 0.7s infinite; }
+    @keyframes typed-blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+    #terminal {
+        background: rgba(0, 0, 0, 0.9); border: 1px solid var(--console-green); padding: 20px; margin-top: 40px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    }
+    #terminal-output {
+        height: 200px; overflow-y: auto; color: var(--light-text); padding-bottom: 10px;
+    }
+    #terminal-input-line { display: flex; align-items: center; margin-top: 10px; }
+    #terminal-input { flex-grow: 1; background: transparent; border: none; color: var(--console-green); font-family: monospace; font-size: 16px; outline: none; padding-left: 5px; caret-color: var(--console-green); }
+    .terminal-prompt { color: var(--console-green); flex-shrink: 0; }
+    .locked-data {
+        background: rgba(10, 0, 0, 0.6); border: 2px dashed #ff0000; padding: 20px; margin-top: 30px; color: #ff0000; text-shadow: 0 0 5px #ff0000; cursor: pointer; transition: all 0.3s;
+    }
+    .locked-data:hover { background: rgba(255, 0, 0, 0.1); box-shadow: 0 0 10px #ff0000; }
+    .secret-content { display: none; color: var(--light-text); margin-top: 10px; border-top: 1px dashed rgba(255, 0, 0, 0.3); padding-top: 10px; }
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+    .project { 
+      background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 5px; padding: 25px; transition: box-shadow 0.3s; cursor: pointer; 
+      transform-style: preserve-3d;
+    }
+    .project:hover { box-shadow: 0 0 15px rgba(0, 255, 0, 0.9); border: 1px solid var(--console-green); }
+    .stat-item h3 { font-size: 2.5em; margin: 0; line-height: 1; color: var(--console-green); }
+    .stat-item p { color: var(--light-text); font-size: 0.9em; margin-top: 5px; }
+    .stats-container {
+      display: flex; justify-content: space-around; margin-top: 50px; text-align: center;
+    }
+
+  </style>
+</head>
+<body onload="startPreloader()">
+
+  <div id="preloader">
+    <div class="loading-text neon-text">> SYSTEM BOOTING...</div>
+    <div class="loading-bar">
+        <div class="loading-progress" id="loading-progress"></div>
+    </div>
+    <div style="margin-top: 15px;">INIT [OK] | FONT LOAD [OK] | MODULES LOAD [OK]</div>
+  </div>
+
+  <audio id="click-sound" preload="auto" style="display: none;"></audio> 
+
+  <div id="tsparticles"></div>
+
+  <header>
+    <h1 class="neon-text">CanVas Dev <span style="font-size: 0.7em;">$ root</span></h1>
+    <nav data-aos="fade-left" data-aos-delay="500">
+      <a href="#about" class="neon-text">Обо мне</a>
+      <a href="#skills" class="neon-text">Навыки</a>
+      <a href="#projects" class="neon-text">Проекты</a>
+      <a href="#contact" class="neon-text">Контакты</a>
+    </nav>
+  </header>
+
+  <section id="about">
+    <center>
+      <img src="https://i.postimg.cc/QN6HF2Zd/photo-2025-09-22-17-30-35.jpg" alt="avatar" data-aos="flip-up" data-aos-easing="ease-out-back" /> 
+      
+      <h2 data-aos="fade-up" class="neon-text">~ $ <span id="typed-text"></span><span class="blinking-caret">|</span></h2>
+      
+      <p data-aos="fade-up" data-aos-delay="300" style="color: var(--light-text);">
+        <span class="neon-text">[INFO]</span> Запуск сессии.
+        <br>Мне **15 лет**, но мой опыт разработки на **PAWN** (SA:MP) позволяет создавать **модульные и высокопроизводительные** системы. 
+        <br>Специализируюсь на **оптимизации, автоматизации** игровых механик и написании **безупречно чистого кода**.
+        <br>Технологический стек: **PAWN, MySQL/SQL, Lua, Python** (Backend) и **HTML/CSS/JS** (Frontend).
+        <br>Цель: Постоянный **апгрейд навыков** и реализация **сложных, нестандартных** проектов 💡
+      </p>
+    </center>
+    
+    <div class="stats-container">
+        <div class="stat-item" data-aos="zoom-in" data-aos-delay="400">
+            <h3 id="stat-lines" class="neon-text" data-target="80155">0</h3>
+            <p>LINES OF PAWN CODE</p>
+        </div>
+        <div class="stat-item" data-aos="zoom-in" data-aos-delay="600">
+            <h3 id="stat-years" class="neon-text" data-target="2">0</h3>
+            <p>YEARS EXPERIENCE</p>
+        </div>
+    </div>
+  </section>
+  
+  <section id="terminal-interface">
+      <h2 data-aos="fade-right" class="neon-text">/dev/console</h2>
+      
+      <div id="terminal" data-aos="flip-down">
+          <div id="terminal-output">
+              <span class="terminal-prompt" style="color: #ff00ff;">[SINTX-LINUX]</span> Welcome to CanVas Dev Terminal Interface.<br>
+              <span class="terminal-prompt" style="color: #ff00ff;">[SINTX-LINUX]</span> Type **'help'** for a list of available commands.
+          </div>
+          <div id="terminal-input-line">
+              <span class="terminal-prompt">user@dev:~ $</span>
+              <input type="text" id="terminal-input" onkeydown="handleCommand(event)" autofocus>
+          </div>
+      </div>
+  </section>
+  
+  <section id="skills">
+    <h2 data-aos="fade-right" class="neon-text">/dev/skills.matrix</h2>
+    <p data-aos="fade-up" style="color: var(--light-text);"><span class="neon-text">[TRACE]</span> Обнаруженные технологии и уровень владения:</p>
+
+    <div class="skills-grid">
+        <div class="skill-item" data-aos="fade-right" data-aos-delay="50"><i class="fas fa-terminal"></i> PAWN (SA:MP) <div class="skill-bar" style="--level: 95%;"></div></div>
+        <div class="skill-item" data-aos="fade-right" data-aos-delay="150"><i class="fas fa-database"></i> MySQL / SQL <div class="skill-bar" style="--level: 80%;"></div></div>
+        <div class="skill-item" data-aos="fade-right" data-aos-delay="250"><i class="fab fa-js"></i> HTML/CSS/JS (Frontend) <div class="skill-bar" style="--level: 15%;"></div></div>
+        <div class="skill-item" data-aos="fade-right" data-aos-delay="250"><i class="fab fa-terminal"></i> Python / Lua <div class="skill-bar" style="--level: 5%;"></div></div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <h2 data-aos="fade-right" class="neon-text">./projects</h2>
+    <div class="projects-grid">
+      <div class="project" data-aos="zoom-out-up" data-aos-delay="0" data-tilt onclick="openProjectDetails(
+        '[Gamemode] RADMIR CRMP v7.7', 
+        '**Основной проект.** Стек: PAWN, MySQL.', 
+        'fas fa-gamepad', 
+        'https://github.com/canvasdevtg/Mods-Radmir-CRMP-7.7.7'
+    )">
+    <h3>[Gamemode] RADMIR CRMP v7.7</h3>
+    <p>Мод проекта RADMIR CRMP v7.7</p>
+    <a href="https://github.com/canvasdevtg/Mods-Radmir-CRMP-7.7.7" target="_blank" class="repo-link neon-text">
+        <i class="fab fa-github"></i> &gt; View Repository
+    </a>
+    </div>
+    <div class="project" data-aos="zoom-out-up" data-aos-delay="0" data-tilt onclick="openProjectDetails(
+        '[Script] CEF Logger (Lua)', 
+        '**Модуль для RADMIR CRMP.** Скрипт, позволяющий принимать JSON-строку CEF-пакета, отправляемую с сервера на клиент. Предназначен для логирования и отладки веб-пакетов. Стек: **Lua**.', 
+        'fas fa-code',
+        'https://github.com/canvasdevtg/rc-cef-logger'
+     )">
+    <h3>[Script] CEF Logger (Lua)</h3>
+    <p>Модуль для перехвата и логирования CEF-пакетов (JSON) в RADMIR CRMP.</p>
+    <a href="https://github.com/canvasdevtg/rc-cef-logger" target="_blank" class="repo-link neon-text" onclick="event.stopPropagation()">
+        <i class="fab fa-github"></i> &gt; View Repository
+    </a>
+    </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 data-aos="fade-left" class="neon-text">/dev/contact</h2>
+    
+    <p data-aos="fade-up" style="color: var(--light-text);">
+        <span class="neon-text">[DIRECT CONNECT]</span> Server connection established.
+        <br>Для оперативной связи или обсуждения проектов используйте прямые каналы:
+    </p>
+
+    <div style="margin-top: 40px;" class="contact-links" data-aos="fade-up" data-aos-delay="100">
+        <a href="https://t.me/canvasdev" target="_blank" class="neon-text" style="display: block; font-size: 1.2em; margin-bottom: 15px;">
+            <i class="fab fa-telegram"></i> &gt; telegram **CanVas Dev**
+        </a>
+        
+        <a href="https://t.me/canvasdevtg" target="_blank" class="neon-text" style="display: block; font-size: 1.2em; margin-bottom: 15px;">
+            <i class="fab fa-telegram"></i> &gt; telegram channel **CanVas Dev - Development**
+        </a>
+    </div>
+    
+    <p data-aos="fade-up" data-aos-delay="200" style="margin-top: 30px; color: #ff00ff;">
+        [INFO] $ **echo "Waiting for your message..."**
+    </p>
+  </section>
+
+  <div id="project-modal-bg" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; display: none; justify-content: center; align-items: center;">
+    <div class="modal-content-box" style="background: rgba(10, 10, 10, 0.95); border: 2px solid var(--console-green); padding: 30px; max-width: 500px; box-shadow: 0 0 20px rgba(0, 255, 0, 0.9);">
+        <h3 id="modal-title" class="neon-text" style="margin-top: 0;">[Project Name]</h3>
+        <p id="modal-content" style="color: #e0e0e0; font-size: 15px;"></p>
+        <button onclick="closeModal();" style="background: var(--console-green); color: var(--dark-bg); border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; margin-top: 15px;">[CLOSE] X</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>// SYSTEM MESSAGE: © 2025 CanVas Dev — PAWN Developer Portfolio</p>
+  </footer>
+
+  <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+  <script>
+    function closeModal() {
+        document.getElementById('project-modal-bg').style.display = 'none';
+    }
+
+    const terminalOutput = document.getElementById('terminal-output');
+    const terminalInput = document.getElementById('terminal-input');
+    const PROMPT = 'user@dev:~ $';
+    
+    const commands = {
+        'help': 'Available commands: **about**, **skills**, **projects**, **contact**, **clear**.',
+        'about': 'Initiating cat /info/CanVasDev.txt: <br>Я 15 летний программист на языке PAWN, создаю скрипты для SA:MP. Опыт 2 года. Скролль выше для полной информации.', 
+        'skills': 'Executing ls /dev/skills.matrix: PAWN (95%), MySQL (80%), JS/HTML/CSS (15%), Lua (5%), Python (5%).',
+        'projects': 'Fetching git status: 2 main projects ([Gamemode] RADMIR CRMP [Pawn], [Script] CEF Logger [Lua]). See projects section for details.', 
+        'contact': '<span class="neon-text">[OUTPUT]</span> Initiating Telegram connection... <br><span style="color: #ff00ff;">[SUCCESS]</span> Contact established: **t.me/canvasdev**. Direct connect to Telegram.',
+        'clear': '' 
+    };
+
+    function appendOutput(html) {
+        terminalOutput.innerHTML += '<div>' + html + '</div>';
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+
+    function handleCommand(event) {
+        if (event.key === 'Enter') {
+            const command = terminalInput.value.trim().toLowerCase();
+            
+            appendOutput(PROMPT + ' ' + command);
+            
+            if (command === 'clear') {
+                terminalOutput.innerHTML = '';
+            } else if (commands[command]) {
+                const response = commands[command].replace(/\*\*(.*?)\*\*/g, '<span class="neon-text">$1</span>');
+                appendOutput('<span style="color: #00ffff;">[OUTPUT]</span> ' + response);
+            } else {
+                appendOutput('<span style="color: #ff0000;">[ERROR]</span> Command not found: ' + command + '. Type "help".');
+            }
+
+            terminalInput.value = '';
+        }
+    }
+
+    function startPreloader() {
+        const preloader = document.getElementById('preloader');
+        const progressBar = document.getElementById('loading-progress');
+
+        document.body.classList.add('no-scroll');
+
+        progressBar.style.width = '100%';
+        
+        setTimeout(() => {
+            preloader.classList.add('hidden');
+            document.body.classList.remove('no-scroll'); 
+            
+            initScripts(); 
+        }, 3500); 
+    }
+
+    function initScripts() {
+
+        AOS.init({ duration: 1000, once: false, offset: 100, easing: 'ease-in-out' });
+        
+        var typed = new Typed('#typed-text', {
+          strings: ['whoami', 'CanVas Dev', 'PAWN DEVELOPER'],
+          typeSpeed: 60, backSpeed: 30, backDelay: 1500, loop: true,
+          showCursor: true 
+        });
+
+        VanillaTilt.init(document.querySelectorAll(".project"), {
+          max: 15, speed: 400, glare: true, 'max-glare': 0.3, reverse: true
+        });
+        
+        tsParticles.load("tsparticles", {
+            particles: {
+                color: { value: "#00ff00" }, 
+                links: { color: "#00ff00", distance: 100, enable: true, opacity: 0.1, width: 1 },
+                move: { enable: true, speed: 1.5, direction: "none", random: false, straight: false, out_mode: "out", bounce: false },
+                number: { value: 120, density: { enable: true, value_area: 800 } },
+                opacity: { value: 0.2, random: true, anim: { enable: false } },
+                shape: { type: "circle" },
+                size: { value: 3, random: true, anim: { enable: false } }
+            },
+            interactivity: {
+                events: { onHover: { enable: true, mode: "repulse" } },
+                modes: { repulse: { distance: 100, duration: 0.4 } }
+            },
+            background: { color: { value: "#000000" } } 
+        });
+
+        const statsContainer = document.querySelector('.stats-container');
+        let statsExecuted = false;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !statsExecuted) {
+                    startCounters();
+                    statsExecuted = true;
+                }
+            });
+        }, { threshold: 0.5 });
+        if (statsContainer) observer.observe(statsContainer);
+    }
+
+    function startCounters() {
+        const counters = document.querySelectorAll('.stat-item h3');
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            let count = 0;
+            const duration = 2000; 
+            const step = target / (duration / 10);
+            const updateCount = () => {
+                count += step;
+                if (count < target) {
+                    counter.innerText = Math.ceil(count).toLocaleString();
+                    setTimeout(updateCount, 10);
+                } else {
+                    counter.innerText = target.toLocaleString();
+                }
+            };
+            updateCount();
+        });
+    }
+
+    function openProjectDetails(title, details, iconClass) {
+        let modalContent = `
+            <p style="color: var(--light-text);"><i class="${iconClass}" style="margin-right: 10px;"></i> [DETAILS]</p>
+            <p style="white-space: pre-wrap; color: #e0e0e0;">${details}</p>
+        `;
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-content').innerHTML = modalContent;
+        document.getElementById('project-modal-bg').style.display = 'flex';
+    }
+    
+    function toggleSecretContent() {
+        const content = document.getElementById('secret-content');
+        if (content) {
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    document.getElementById('project-modal-bg').addEventListener('click', function(e) {
+        if (e.target.id === 'project-modal-bg') {
+            closeModal();
+        }
+    });
+
+  </script>
+  
+</body>
+</html>
